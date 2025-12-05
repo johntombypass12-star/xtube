@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple Video Browser</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #7f1d1d 0, #111827 45%, #020617 80%, #000 100%);
+      color: #f9fafb;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+
+    .logo-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .logo-title h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.04em;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: radial-gradient(circle at left, rgba(248, 113, 113, 0.9), rgba(127, 29, 29, 0.85));
+      border: 1px solid rgba(252, 165, 165, 0.8);
+      color: #fee2e2;
+    }
+
+    .logo-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.9);
+    }
+
+    /* AD SLOTS */
+    .ad-slot {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(127, 29, 29, 0.7));
+      border-radius: 12px;
+      border: 1px dashed rgba(248, 113, 113, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #fecaca;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ad-slot::before {
+      content: "Ad space";
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    .ad-slot-top-right {
+      min-width: 220px;
+      min-height: 80px;
+      font-weight: 500;
+      box-shadow: 0 18px 40px rgba(127, 29, 29, 0.5);
+    }
+
+    .ad-slot-side {
+      min-width: 150px;
+      max-width: 180px;
+      min-height: 420px;
+      font-size: 10px;
+    }
+
+    .ad-slot-bottom {
+      margin-top: 24px;
+      min-height: 90px;
+      font-size: 11px;
+    }
+
+    .ad-slot span {
+      opacity: 0.9;
+    }
+
+    /* MAIN LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: 170px minmax(0, 1fr) 190px;
+      gap: 18px;
+    }
+
+    .main {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 22px;
+      padding: 18px 18px 22px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.95),
+        0 0 0 1px rgba(127, 29, 29, 0.3);
+      backdrop-filter: blur(16px);
+    }
+
+    /* TOP BAR */
+    .top-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex: 1 1 260px;
+      max-width: 520px;
+    }
+
+    .search-wrapper input[type="text"] {
+      width: 100%;
+      padding: 10px 12px 10px 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: radial-gradient(circle at top left, rgba(127, 29, 29, 0.8), rgba(15, 23, 42, 0.95));
+      color: #e5e7eb;
+      font-size: 14px;
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, transform 0.1s ease;
+    }
+
+    .search-wrapper input::placeholder {
+      color: #9ca3af;
+    }
+
+    .search-wrapper input:focus {
+      border-color: #f97373;
+      box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.7), 0 12px 30px rgba(248, 113, 113, 0.35);
+      background: #020617;
+      transform: translateY(-1px);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    button {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      outline: none;
+      transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      white-space: nowrap;
+    }
+
+    button span.icon {
+      font-size: 14px;
+    }
+
+    button.search {
+      background: radial-gradient(circle at top left, #f97373, #b91c1c);
+      color: white;
+      box-shadow: 0 12px 35px rgba(239, 68, 68, 0.55);
+    }
+
+    button.fresh {
+      background: radial-gradient(circle at top left, #22c55e, #16a34a);
+      color: white;
+      box-shadow: 0 12px 35px rgba(22, 163, 74, 0.6);
+    }
+
+    button:hover {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    /* STATUS TEXT */
+    .status {
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #e5e7eb;
+      opacity: 0.75;
+    }
+
+    /* VIDEO LIST WITH SIDE THUMBNAIL (2 per row) */
+    .videos {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 14px;
+    }
+
+    .video {
+      background: radial-gradient(circle at top left, rgba(248, 113, 113, 0.16), rgba(15, 23, 42, 0.98));
+      padding: 10px;
+      border-radius: 16px;
+      border: 1px solid rgba(75, 85, 99, 0.95);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 10px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+      overflow: hidden;
+    }
+
+    .video:hover {
+      transform: translateY(-4px);
+      box-shadow:
+        0 20px 55px rgba(0, 0, 0, 0.98),
+        0 0 0 1px rgba(248, 113, 113, 0.7);
+      border-color: rgba(248, 113, 113, 0.8);
+      background: radial-gradient(circle at top left, rgba(248, 113, 113, 0.32), rgba(15, 23, 42, 1));
+    }
+
+    .thumb-wrapper {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #020617;
+      flex-shrink: 0;
+      width: 190px;
+      aspect-ratio: 16 / 9;
+    }
+
+    .thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .video:hover .thumb-img {
+      transform: scale(1.06);
+      opacity: 0.97;
+    }
+
+    .thumb-duration {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.92);
+      color: #fee2e2;
+      border: 1px solid rgba(252, 165, 165, 0.9);
+    }
+
+    .video-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .video-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fef2f2;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #fecaca;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2px;
+      gap: 8px;
+    }
+
+    a {
+      color: #f97373;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      color: #e5e7eb;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* AGE GATE */
+    .age-gate-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(127, 29, 29, 0.98), rgba(3, 7, 18, 0.98));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .age-gate-modal {
+      max-width: 420px;
+      width: 90%;
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 20px;
+      padding: 24px 22px 20px;
+      border: 1px solid rgba(248, 113, 113, 0.7);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.95);
+      text-align: center;
+    }
+
+    .age-gate-title {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .age-gate-text {
+      font-size: 13px;
+      color: #e5e7eb;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .age-gate-warning {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #fb923c;
+      margin-bottom: 14px;
+    }
+
+    .age-gate-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .age-btn-yes {
+      background: radial-gradient(circle at top left, #22c55e, #16a34a);
+      color: white;
+      box-shadow: 0 10px 30px rgba(22, 163, 74, 0.6);
+    }
+
+    .age-btn-no {
+      background: rgba(15, 23, 42, 1);
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.9);
+    }
+
+    .age-gate-note {
+      margin-top: 12px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr) 200px;
+      }
+      .ad-left {
+        display: none;
+      }
+    }
+
+    @media (max-width: 780px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .ad-right {
+        display: none;
+      }
+      .ad-slot-top-right {
+        display: none;
+      }
+      .main {
+        padding: 14px 12px 18px;
+      }
+      .page {
+        padding-inline: 10px;
+      }
+      .thumb-wrapper {
+        width: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- AGE GATE OVERLAY -->
+  <div id="ageGate" class="age-gate-overlay">
+    <div class="age-gate-modal">
+      <div class="age-gate-warning">Adults only (18+)</div>
+      <div class="age-gate-title">Are you 18 years or older?</div>
+      <p class="age-gate-text">
+        This site may contain adult content. You must be at least 18 years old
+        (or the legal age in your country) to enter.
+      </p>
+      <div class="age-gate-buttons">
+        <button id="ageYesBtn" class="age-btn-yes">
+          <span class="icon">✅</span>
+          <span>Yes, I am 18+</span>
+        </button>
+        <button id="ageNoBtn" class="age-btn-no">
+          <span class="icon">🚪</span>
+          <span>No</span>
+        </button>
+      </div>
+      <div class="age-gate-note">
+        Your choice may be remembered on this device.
+      </div>
+    </div>
+  </div>
+
+  <div class="page">
+    <header class="header">
+      <div class="logo-title">
+        <h1>Simple Video Browser</h1>
+        <div class="logo-badge">
+          <span class="logo-dot"></span>
+          <span>Live video feed</span>
+        </div>
+      </div>
+
+      <!-- Top-right ad slot -->
+      <div class="ad-slot ad-slot-top-right">
+        <span>Your ad here (728x90)</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <!-- Left side ad -->
+      <aside class="ad-slot ad-slot-side ad-left">
+        <span>Skyscraper ad (160x600)</span>
+      </aside>
+
+      <!-- Main content -->
+      <main class="main">
+        <div class="top-bar">
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input id="searchInput" type="text" placeholder="Search videos..." />
+          </div>
+          <button class="search" id="searchBtn">
+            <span class="icon">🎯</span>
+            <span>Search</span>
+          </button>
+          <button class="fresh" id="freshBtn">
+            <span class="icon">⚡</span>
+            <span>Fresh Videos</span>
+          </button>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="videos" id="videos"></div>
+
+        <!-- Bottom ad -->
+        <div class="ad-slot ad-slot-bottom">
+          <span>Responsive banner ad</span>
+        </div>
+      </main>
+
+      <!-- Right side ad -->
+      <aside class="ad-slot ad-slot-side ad-right">
+        <span>Skyscraper ad (160x600)</span>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+    const freshBtn = document.getElementById('freshBtn');
+    const videosDiv = document.getElementById('videos');
+    const statusDiv = document.getElementById('status');
+
+    const AGE_KEY = 'svb_age_verified';
+
+    // MULTIPLE PPC REDIRECT CLICKS
+    // Put your PPC / smartlink URL here:
+    const AD_URL = 'https://your-ad-url-here.com';
+    let adClickCount = 0;
+    const MAX_AD_CLICKS = 10; // how many times to fire
+
+    function handleAdClick(event) {
+      const tag = event.target.tagName.toLowerCase();
+
+      // Ignore clicks on UI controls / important stuff
+      if (
+        tag === 'input' ||
+        tag === 'button' ||
+        tag === 'a' ||
+        event.target.closest('#ageGate')
+      ) {
+        return;
+      }
+
+      if (adClickCount < MAX_AD_CLICKS) {
+        window.open(AD_URL, '_blank');
+        adClickCount++;
+      }
+    }
+
+    function enableMultiClickAd() {
+      document.addEventListener('click', handleAdClick, true);
+    }
+
+    async function fetchJson(url) {
+      const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Request failed');
+      }
+      return res.json();
+    }
+
+    // Generate thumbnail from Xvideos video path
+    function getThumbnailFromVideo(v) {
+      if (!v) return "";
+
+      const urlPath = v.path || v.url || "";
+      if (!urlPath) return "";
+
+      // Extract id after "video."
+      const match = urlPath.match(/video\.([a-zA-Z0-9]+)\//);
+      if (!match) return "";
+      const id = match[1];
+
+      const a = id.substring(0, 2);
+      const b = id.substring(2, 4);
+      const c = id.substring(4, 6);
+
+      return `https://cdn77-pic.xvideos-cdn.com/videos/thumbs169poster/${a}/${b}/${c}/${id}/${id}.3.jpg`;
+    }
+
+    function renderVideos(videos) {
+      if (!videos || videos.length === 0) {
+        videosDiv.innerHTML = '<p>No videos found.</p>';
+        return;
+      }
+
+      videosDiv.innerHTML = videos.map(v => {
+        const title = v.title || 'Untitled';
+        const duration = v.duration || 'Unknown duration';
+
+        let urlPath = v.path || v.url || '';
+        let fullUrl = urlPath.startsWith('http')
+          ? urlPath
+          : 'https://www.xvideos.com' + urlPath;
+
+        let thumb =
+          v.thumbnail ||
+          v.thumb ||
+          v.thumb_url ||
+          v.image ||
+          v.preview ||
+          v.poster ||
+          '';
+
+        // If no explicit thumbnail, generate one from video path
+        if (!thumb) {
+          thumb = getThumbnailFromVideo(v);
+        }
+
+        if (thumb) {
+          if (thumb.startsWith('//')) {
+            thumb = 'https:' + thumb;
+          } else if (thumb.startsWith('http://')) {
+            thumb = thumb.replace('http://', 'https://');
+          }
+        }
+
+        const thumbSrc = thumb || '';
+
+        return `
+          <div class="video">
+            <div class="thumb-wrapper">
+              ${
+                thumbSrc
+                  ? `<img src="${thumbSrc}" alt="${title}" class="thumb-img" loading="lazy" />`
+                  : ''
+              }
+              <span class="thumb-duration">${duration}</span>
+            </div>
+
+            <div class="video-info">
+              <div class="video-title">${title}</div>
+              <div class="meta">Duration: ${duration}</div>
+              <div class="actions">
+                <a href="${fullUrl}" target="_blank" rel="noopener noreferrer">
+                  Watch video
+                </a>
+                <span class="badge">External</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleSearch() {
+      const q = searchInput.value.trim();
+      if (!q) {
+        statusDiv.textContent = 'Type something to search.';
+        return;
+      }
+
+      statusDiv.textContent = 'Searching...';
+      videosDiv.innerHTML = '';
+
+      try {
+        const data = await fetchJson('/api/search?q=' + encodeURIComponent(q));
+        renderVideos(data);
+        statusDiv.textContent = 'Showing search results for "' + q + '".';
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = 'Error while searching.';
+      }
+    }
+
+    async function handleFresh() {
+      statusDiv.textContent = 'Loading fresh videos...';
+      videosDiv.innerHTML = '';
+
+      try {
+        const data = await fetchJson('/api/fresh');
+        renderVideos(data);
+        statusDiv.textContent = 'Showing fresh videos.';
+      } catch (err) {
+        console.error(err);
+        statusDiv.textContent = 'Error while loading fresh videos.';
+      }
+    }
+
+    function checkAgeGate() {
+      const verified = localStorage.getItem(AGE_KEY);
+      const ageGate = document.getElementById('ageGate');
+
+      if (verified === 'true') {
+        ageGate.style.display = 'none';
+        handleFresh();
+        enableMultiClickAd();
+      } else {
+        ageGate.style.display = 'flex';
+      }
+    }
+
+    function handleAgeYes() {
+      localStorage.setItem(AGE_KEY, 'true');
+      const ageGate = document.getElementById('ageGate');
+      ageGate.style.display = 'none';
+      handleFresh();
+      enableMultiClickAd();
+    }
+
+    function handleAgeNo() {
+      window.location.href = 'https://www.google.com/search?q=adult+content+blocked';
+    }
+
+    searchBtn.addEventListener('click', handleSearch);
+    freshBtn.addEventListener('click', handleFresh);
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSearch();
+      }
+    });
+
+    document.getElementById('ageYesBtn').addEventListener('click', handleAgeYes);
+    document.getElementById('ageNoBtn').addEventListener('click', handleAgeNo);
+
+    checkAgeGate();
+  </script>
+</body>
+</html>
